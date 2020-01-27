@@ -4,6 +4,9 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
+
+import javax.persistence.EntityNotFoundException;
 
 import org.springframework.stereotype.Service;
 
@@ -40,8 +43,13 @@ public class ReservationService {
 				listChambres.add(ch);
 			}
 		}
-		newR.setClient(clientRepository.findById(clientId).orElse(null));
 		newR.setChambres(listChambres);
+		newR.setClient(clientRepository.findById(clientId)
+				.orElseThrow(() -> new EntityNotFoundException("client non trouvé")));
+		newR.setChambres(chambres.stream()
+				.map(chambreId -> chambreRepository.findById(chambreId)
+						.orElseThrow(() -> new EntityNotFoundException("la chambre " + chambreId + " n'existe pas")))
+				.collect(Collectors.toList()));
 		return reservationRepository.save(newR);
 	}
 
